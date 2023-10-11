@@ -1,0 +1,40 @@
+{# {%set getCurrentUrl = app.request.pathinfo|split('/')[1]%}
+{%set secondCurrentUrl = app.request.pathinfo|split('/')[2]%} #}
+
+<div class="main-sidebar">
+  <aside id="sidebar-wrapper">
+    <div class="sidebar-brand">
+      <a href="#">POINTAGE</a>
+      <span>FCZ MTSI</span>
+    </div>
+    <div class="sidebar-brand sidebar-brand-sm">
+      <a href="#">UV</a>
+    </div>
+    <ul class="sidebar-menu">
+      <li class="menu-header">Dashboard</li>
+      {# {% for module in app.session.get('modules') %}
+      
+      <li class="nav-item dropdown {% if getCurrentUrl == module.module.prefix %} active {% endif %}">
+        <a href="#" class="nav-link has-dropdown"
+          ><i class="{{module.module.icon}}"></i><span>{{module.module.designation}}</span></a
+        >
+        <ul class="dropdown-menu">
+          {% for sousModule in module.sousModule %}
+            <li><a class="nav-link {% if getCurrentUrl == module.module.prefix and secondCurrentUrl == sousModule.prefix %} activeSecondUrl {% endif %}" href="{{path(sousModule.link)}}">{{sousModule.designation}}</a></li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %} #}
+      {# {% if is_granted('ROLE_ADMIN') %}
+      <li class="nav-item dropdown {% if getCurrentUrl == "parametre" %} active {% endif %}">
+        <a href="#" class="nav-link has-dropdown">
+          <i class="fas fa-users-cog"></i><span>Adminstration</span>
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="nav-link {% if getCurrentUrl == "parametre" and secondCurrentUrl == "user" %} activeSecondUrl {% endif %}" href="{{path('parametre_user')}}">Users</a></li>
+        </ul>
+      </li>
+      {% endif %} #}
+    </ul>
+  </aside>
+</div>

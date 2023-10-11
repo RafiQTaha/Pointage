@@ -1,0 +1,58 @@
+
+<div class="navbar-bg"></div>
+<nav class="navbar navbar-expand-lg main-navbar">
+  <form class="form-inline mr-auto">
+    <ul class="navbar-nav mr-3">
+      <li>
+        <a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"
+          ><i class="fas fa-bars"></i
+        ></a>
+      </li>
+      
+    </ul>
+    
+  </form>
+  <ul class="navbar-nav navbar-right">
+    <li class="dropdown">
+      <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" >
+        <img alt="image" src="{{asset('assets/img/avatar/avatar-1.png')}}" class="rounded-circle mr-1"/>
+        {# <div class="d-sm-none d-lg-inline-block">{{app.user.username}}</div></a #}
+        <div class="d-sm-none d-lg-inline-block">Admin</div></a>
+      {# <div class="dropdown-menu dropdown-menu-right">
+        <a href="#" class="dropdown-item has-icon text-primary password_change">
+          <i class="fas fa-lock"></i> Changer mot de passe
+        </a>
+        <a href="{{path('app_logout')}}" class="dropdown-item has-icon text-danger">
+        <a href="#" class="dropdown-item has-icon text-danger">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div> #}
+    </li>
+  </ul>
+</nav>
+
+<div class="modal" role="dialog" id="password_modal" aria-modal="true"> 
+<div class="modal-dialog modal-md" style="max-width: 200px !important;" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Formulaire mot de passe</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+        <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- <div class="alert alert-info">Veuillez selectionner un ligne Pour Continuer Cette opération !!</div> -->
+        <form id="save_password_change">
+            <label for="an_password">Ancien mot de passe:</label>
+            <input type="password" class="form-control" name="an_password" id="an_password" />
+            <label for="nv_password">Nouveau mot de passe:</label>
+            <input type="password" class="form-control" name="nv_password" id="nv_password" />          
+
+            
+            <button type="submit" class="btn btn-success mt-4"><i class="fas fa-check-circle"></i> Enregister</button>
+            {# <button type="button" id="save_document" class="btn btn-success mt-2"><i class="fas fa-check-circle"></i> Enregistrer</button> #}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

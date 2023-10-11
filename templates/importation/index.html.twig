@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %} 
+{% block title %}Univ - Seances{% endblock %} 
+{% block body %}
+
+<div class="main-content">
+  <section class="section">
+    <div class="section-header">
+      <h1>Pointages</h1>
+      <div class="section-header-breadcrumb">
+        <a href="#" id="import" class="btn btn-primary ml-1"><i class="fas fa-check"></i> Import</a>
+        {# <a href="#" id="z" class="btn btn-primary ml-1"><i class="fas fa-edit"></i> Z</a>
+        <a href="#" id="s" class="btn btn-primary ml-1"><i class="fas fa-edit"></i> S</a>
+        <a href="#" id="planing" class="btn btn-success ml-1"><i class="fas fa-calendar-alt"></i> Planing</a>
+        <a href="#" id="imprimer" class="btn btn-secondary ml-1"><i class="fas fa-print"></i> Imprimer</a>
+        <a href="#" id="verouiller" class="btn btn-danger ml-1"><i class="fas fa-lock"></i> Verouiller</a>
+        <a href="#" id="retraiter" class="btn btn-success ml-1"><i class="fas fa-redo"></i> Retraiter</a>
+        <a href="#" id="scan" class="btn btn-secondary ml-1"><i class="fas fa-file"></i> Scan</a>
+        <a href="#" id="annuler" class="btn btn-danger ml-1"><i class="fas fa-window-close"></i> Annuler</a>
+        <a href="#" id="signer" class="btn btn-primary ml-1"><i class="fas fa-signature"></i> Signer</a>
+        <a href="#" id="existe" class="btn btn-primary ml-1"><i class="fas fa-thumbtack"></i> Existe</a>
+        <a href="#" id="reinitialiser" class="btn btn-danger ml-1"><i class="fas fa-minus"></i> Réinitialiser</a>
+        <a href="#" id="modifiersalle" class="btn btn-warning ml-1"><i class="fas fa-edit"></i> Modifier Salle</a>
+        <a href="#" class="btn btn-success ml-1" id="traiter"><i class="fas fa-clock"></i> Traiter</a> #}
+
+        {# {% for operation in operations %}
+        <a href="{{ operation.link }}" class="{{ operation.classTag }}" id="{{ operation.idTag }}"><i
+            class="{{ operation.icon }}"></i> {{ operation.designation }}</a>
+        {% endfor %} #}
+      </div>
+    </div>
+
+    <div class="section-body">
+      <div class="card">
+        <div class="card-header">
+          <h4>Tableau des Pointages</h4>
+        </div>
+        <div class="card-body">
+          <div class="card-search" style="margin-bottom: 1.5rem">
+            <div class="row">
+              <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
+                <label for="day">Jour D'Importation:</label>
+                <input type="date" class="form-control" name="day" id="day" value="{{ 'now' | date('Y-m-d')}}" />
+              </div>
+              <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
+                <label for="hdebut">Heur Debut:</label>
+                {# <input type="time" id="appt" name="appt" min="09:00" max="18:00" required /> #}
+                <input type="time" class="form-control" id="hdebut" name="hdebut"  />
+              </div>
+              <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
+                <label for="hfin">Heur Fin:</label>
+                <input type="time" class="form-control" id="hfin" name="hfin"  />
+              </div>
+              {# <div class="col-md-1" style="padding-right: 5px !important;padding-left: 5px !important;">
+                <label for="salles">Salles:</label>
+                <select class="form-control" name="salles" id="salles">
+                  <option value="">Choix salle</option>
+                  {% for salle in salles %}
+                  <option value="{{ salle.id }}">
+                    {{ salle.designation }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div> #}
+            </div>
+          </div>
+          <table id="datatables_gestion_pointages" class="table table-striped" style="width: 100%">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>IP</th>
+                <th>SN</th>
+                <th>D-Pointage</th>
+                <th>Badgenumber</th>
+                <th>Nom</th>
+                {# <th>Nbr Pointage</th> #}
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <th>#</th>
+                <th>IP</th>
+                <th>SN</th>
+                <th>D-Pointage</th>
+                <th>Badgenumber</th>
+                <th>Nom</th>
+                {# <th>Nbr Pointage</th> #}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!--Modal Import Group-->
+{# {% include 'traitement/modals/parlot.html.twig' %}
+{% include 'traitement/modals/etudiant.html.twig' %} #}
+{% endblock %}
+{% block javascripts %}
+{{ parent() }}
+{# {{ encore_entry_script_tags("traitement") }} #}
+<script src="/assets/js/traitement/traitement.js"></script>
+
+{% endblock %}
