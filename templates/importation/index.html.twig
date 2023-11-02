@@ -7,6 +7,9 @@
     <div class="section-header">
       <h1>Pointages</h1>
       <div class="section-header-breadcrumb">
+        <button type="button" class="btn btn-success ml-1" id="btnExtractionResi" data-toggle="modal" data-target="#modal-extraction">
+          <i class="fas fa-file"></i> Extraction Residanat
+        </button>
         <a href="#" id="import" class="btn btn-primary ml-1"><i class="fas fa-check"></i> Import</a>
         {# <a href="#" id="z" class="btn btn-primary ml-1"><i class="fas fa-edit"></i> Z</a>
         <a href="#" id="s" class="btn btn-primary ml-1"><i class="fas fa-edit"></i> S</a>
@@ -97,6 +100,7 @@
 <!--Modal Import Group-->
 {# {% include 'traitement/modals/parlot.html.twig' %}
 {% include 'traitement/modals/etudiant.html.twig' %} #}
+{% include 'importation/modals/extraction_resi.html.twig' %}
 {% endblock %}
 {% block javascripts %}
 {{ parent() }}

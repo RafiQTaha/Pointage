@@ -94,6 +94,49 @@ $(document).ready(function () {
       // window.open('/assiduite/traitement/planing/'+day, '_blank');
   })
 
+  // $('body').on('click', '#extraction_resi', async function(e){
+  //     e.preventDefault();
+  //     var day = $("body #day").val();
+  //     if(!day) {
+  //         Toast.fire({
+  //             icon: 'error',
+  //             title: 'Veuillez selection une date!',
+  //         })
+  //         return;
+  //     }
+  //     console.log(day)
+  //     const icon = $("#import i");
+  //     let formData = new FormData();
+  //     formData.append('date',day)
+  //     icon.remove('fa-check').addClass("fa-spinner fa-spin");
+  //     Importation(formData,icon)
+      
+  //     // window.open('/assiduite/traitement/planing/'+day, '_blank');
+  // })
+
+  $("#extraction_resi").on("click",function(e) {
+    e.preventDefault()
+      
+      const date_debut = $("body #date_debut").val();
+      const date_fin = $("body #date_fin").val();
+      console.log(date_debut);
+      console.log(date_fin);
+    if(!date_debut || !date_fin ){
+      Toast.fire({
+        icon: 'error',
+        title: 'Veuillez remplire tous les champs!',
+      })
+      return;
+    }
+            
+    window.open(
+      "/extractionResidanat/"+date_debut+"/"+date_fin,
+      "_blank"
+    );
+
+  })
+
+
   
   const Importation = async (formData,icon) => {
     try {
