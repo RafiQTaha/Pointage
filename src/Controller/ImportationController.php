@@ -22,10 +22,11 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
-require '../zklibrary.php';
+// require '../zklibrary.php';
 
-// #[Route('/assiduite/traitement')]
+#[Route('/pointage')]
 class ImportationController extends AbstractController
 {
     private $em;
@@ -51,30 +52,30 @@ class ImportationController extends AbstractController
         // dd($params);
         $where = $totalRows = $sqlRequest = "";
         // $filtre = " where 1 = 1 and date(ch.checktime) = '2023-09-26' AND HOUR(ch.created) = 3 AND DATE_FORMAT(ch.created, '%p') = 'AM' ";   
-        $filtre = " where 1 = 1  ";   
+        $filtre = " where 1 = 1  ";
         $day = date('Y-m-d');
         if (!empty($params->all('columns')[0]['search']['value'])) {
-            $day= $params->all('columns')[0]['search']['value'];
+            $day = $params->all('columns')[0]['search']['value'];
         }
         $filtre .= " and date(ch.created) = '" . $day . "' ";
 
         if (!empty($params->all('columns')[1]['search']['value'])) {
-            $hdebut = $day." ".$params->all('columns')[1]['search']['value'].":00";
+            $hdebut = $day . " " . $params->all('columns')[1]['search']['value'] . ":00";
             $filtre .= " and ch.created >= '" . $hdebut . "' ";
         }
         if (!empty($params->all('columns')[2]['search']['value'])) {
-            $hfin = $day." ".$params->all('columns')[2]['search']['value'].":59";
+            $hfin = $day . " " . $params->all('columns')[2]['search']['value'] . ":59";
             $filtre .= " and ch.created <= '" . $hfin . "' ";
         }
 
 
         $columns = array(
-            array( 'db' => 'mach.id','dt' => 0),
-            array( 'db' => 'mach.IP','dt' => 1),
-            array( 'db' => 'UPPER(mach.sn)','dt' => 2),
-            array( 'db' => 'ch.checktime','dt' => 3),
-            array( 'db' => 'ch.userid','dt' => 4),
-            array( 'db' => 'us.name','dt' => 5),
+            array('db' => 'mach.id', 'dt' => 0),
+            array('db' => 'mach.IP', 'dt' => 1),
+            array('db' => 'UPPER(mach.sn)', 'dt' => 2),
+            array('db' => 'ch.checktime', 'dt' => 3),
+            array('db' => 'ch.userid', 'dt' => 4),
+            array('db' => 'us.name', 'dt' => 5),
         );
         $sql = "SELECT " . implode(", ", DatatablesController::Pluck($columns, 'db')) . "
         FROM machines mach
@@ -83,7 +84,7 @@ class ImportationController extends AbstractController
         $filtre  ";
         // $groupBY = "GROUP BY mach.id, mach.IP, UPPER(mach.sn), DATE_FORMAT(ch.created, '%H:%i')";
         // $having = "HAVING COUNT(ch.checktime)";
-        
+
         $sqlRequest .= $sql;
         // unset($columns[4]);
         // search 
@@ -98,13 +99,13 @@ class ImportationController extends AbstractController
 
 
         // dd($sqlRequest);
-        
+
 
         $sqlRequest .= DatatablesController::Order($request, $columns);
         $stmt = $this->em->getConnection()->prepare($sqlRequest);
         $resultSet = $stmt->executeQuery();
         $result = $resultSet->fetchAll();
-        
+
 
         $data = array();
         // dd($result);
@@ -129,7 +130,7 @@ class ImportationController extends AbstractController
                 //             }
                 //         }
                 //         // dd($PointeuseUsers);
-        
+
                 //     } catch (\Throwable $th) {
                 //         $value = '-';
                 //         //dump($machine);
@@ -151,12 +152,12 @@ class ImportationController extends AbstractController
             "draw" => intval($params->get('draw')),
             "recordsTotal" => intval($totalRecords),
             "recordsFiltered" => intval($totalRecords),
-            "data" => $data   
+            "data" => $data
         );
         // die;
         return new Response(json_encode($json_data));
     }
-    
+
     // #[Route('/list', name: 'pointage_list')]
     // public function list(Request $request)
     // {
@@ -195,7 +196,7 @@ class ImportationController extends AbstractController
     //     $filtre  ";
     //     $groupBY = "GROUP BY mach.id, mach.IP, UPPER(mach.sn), DATE_FORMAT(ch.created, '%H:%i')";
     //     $having = "HAVING COUNT(ch.checktime)";
-        
+
     //     $sqlRequest .= $sql;
     //     unset($columns[4]);
     //     // search 
@@ -212,13 +213,13 @@ class ImportationController extends AbstractController
 
 
     //     // dd($sqlRequest);
-        
+
 
     //     $sqlRequest .= DatatablesController::Order($request, $columns);
     //     $stmt = $this->em->getConnection()->prepare($sqlRequest);
     //     $resultSet = $stmt->executeQuery();
     //     $result = $resultSet->fetchAll();
-        
+
 
     //     $data = array();
     //     // dd($result);
@@ -247,13 +248,16 @@ class ImportationController extends AbstractController
     // }
 
     #[Route('/importation', name: 'importation')]
-    public function importation(Request $request): Response
+    public function importation(Request $request, AuthorizationCheckerInterface $authorizationChecker): Response
     {
+        if (!$authorizationChecker->isGranted('ROLE_ADMIN')) {
+            return new Response('', 500);
+        }
         $this->em->getRepository(SituationSync::class)->find(1)->setSync(1);
         $this->em->flush();
         $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
         // dd($dateSeance);
-        $machines = $this->em->getRepository(Machines::class)->findBy(['active'=>1]);
+        $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
         // dd($machines);
         // $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[955,954]]);
         $EndWithSucces = 0;
@@ -263,7 +267,7 @@ class ImportationController extends AbstractController
             // if ($machine->getSn() != "AIOR200360236") {
             //     continue;
             // }
-            $attendances =[];
+            $attendances = [];
             $zk = new \ZKLibrary($machine->getIP(), 4370);
             $zk->connect();
             // dd($zk->connect());
@@ -271,7 +275,6 @@ class ImportationController extends AbstractController
             try {
                 $attendances = $zk->getAttendance($dateSeance);
                 $EndWithSucces++;
-
             } catch (\Throwable $th) {
                 //dump($machine);
                 $EndWithError++;
@@ -303,36 +306,35 @@ class ImportationController extends AbstractController
         }
         $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
         $this->em->flush();
-        return new Response('Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200);
+        return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
         // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
         dd('done');
     }
 
     static function ping($ip)
     {
-        $deviceIP=$ip;
+        $deviceIP = $ip;
 
         $devicePort = 4370; // Replace with the appropriate port number
         $timeout = 1; // Connection timeout in seconds
-        
+
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        
+
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
         socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, ['sec' => $timeout, 'usec' => 0]);
-        
+
         // Try to connect to the device
         if (@socket_connect($socket, $deviceIP, $devicePort)) {
             $status = 'yes';
-        }else{
+        } else {
             $status = 'no';
         }
-        
+
         socket_close($socket);
         //  dd($status);
         return $status;
-
     }
-    
+
     #[Route('/importationTemp', name: 'importationTemp')]
     public function importationTemp(Request $request): Response
     {
@@ -343,9 +345,9 @@ class ImportationController extends AbstractController
         // dd($dateSeance);
         // $machines = $this->em->getRepository(Machines::class)->findall();
         // dd($machines);
-        $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[953]]);
+        $machines = $this->em->getRepository(Machines::class)->findBy(['id' => [953]]);
         // $machines = $this->em->getRepository(Machines::class)->findBy(['active'=>0]);
-        
+
         // $ping =  self::ping($machines[0]->getIP());
         // dd($ping);
         // $cc=0;
@@ -356,7 +358,7 @@ class ImportationController extends AbstractController
         //         $checkinout->setMachine($machine);
         //         $cc++;
         //     }
-            
+
         // }
         // $this->em->flush();
         // dd($cc);
@@ -368,7 +370,7 @@ class ImportationController extends AbstractController
             // if ($machine->getSn() != "AIOR200360236") {
             //     continue;
             // }
-            $attendances =[];
+            $attendances = [];
             $zk = new \ZKLibrary($machine->getIP(), 4370);
             $zk->connect();
             // dd($zk->connect());
@@ -376,9 +378,8 @@ class ImportationController extends AbstractController
             try {
                 // dd("hi");
                 // $attendances = $zk->getAttendance($dateSeance);
-                $attendances = $zk->getAttendanceByDate($datedebut,$datefin);
+                $attendances = $zk->getAttendanceByDate($datedebut, $datefin);
                 $EndWithSucces++;
-
             } catch (\Throwable $th) {
                 dump($th);
                 array_push($machineError, $machine);
@@ -413,7 +414,7 @@ class ImportationController extends AbstractController
         // $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
         // $this->em->flush();
         dd($machineError);
-        return new Response('Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200);
+        return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
         // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
         dd('done');
     }
@@ -625,13 +626,13 @@ class ImportationController extends AbstractController
         'ADM-FDA_FDA00002771',
         'ADM-FDA_FDA00002781',
         'ADM-FDA_FDA00002777'";
-        $myArray="'x',";
+        $myArray = "'x',";
 
-        $requete="SELECT DISTINCT userinfo.name,userinfo.street,userinfo.badgenumber
+        $requete = "SELECT DISTINCT userinfo.name,userinfo.street,userinfo.badgenumber
         from userinfo
         WHERE userinfo.street in ($admission) order by name";
         $stmt = $this->em->getConnection()->prepare($requete);
-        $newstmt = $stmt->executeQuery();   
+        $newstmt = $stmt->executeQuery();
         $userinfo = $newstmt->fetchAll();
         // dd($requete);
         $spreadsheet = new Spreadsheet();
@@ -642,11 +643,11 @@ class ImportationController extends AbstractController
         $sheet->setCellValue('D1', 'HEUREDEPOINTAGEMINIMAL');
         $sheet->setCellValue('E1', 'HEUREDEPOINTAGEMaximal');
 
-        $i=2;
-        $count = 1 ;
+        $i = 2;
+        $count = 1;
         foreach ($userinfo as $sn) {
 
-            $requete="SELECT
+            $requete = "SELECT
                 c1.Dat,
                 c1.checktime AS min_pointage,
                 c2.checktime AS max_pointage
@@ -654,7 +655,7 @@ class ImportationController extends AbstractController
                 (
                     SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, MIN(TIME_FORMAT(checktime, '%H:%i:%s')) AS checktime
                     FROM checkinout
-                    WHERE userid = ".$sn["badgenumber"]."
+                    WHERE userid = " . $sn["badgenumber"] . "
                     AND date(checktime) >= '$db' AND  date(checktime) <= '$fin'
                     GROUP BY Dat
                 ) c1
@@ -662,30 +663,28 @@ class ImportationController extends AbstractController
                 (
                     SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, MAX(TIME_FORMAT(checktime, '%H:%i:%s')) AS checktime
                     FROM checkinout
-                    WHERE userid = ".$sn["badgenumber"]."
+                    WHERE userid = " . $sn["badgenumber"] . "
                     AND date(checktime) >= '$db' AND  date(checktime) <= '$fin'
                     GROUP BY Dat
                 ) c2
             ON c1.Dat = c2.Dat;";
             // dd($requete);
             $stmt = $this->em->getConnection()->prepare($requete);
-            $newstmt = $stmt->executeQuery();   
+            $newstmt = $stmt->executeQuery();
             $pointage = $newstmt->fetchAll();
 
-            foreach($pointage as $p){
-                
-                $sheet->setCellValue('A'.$i, $sn["street"]);
-                $sheet->setCellValue('B'.$i, $sn["name"]);
-                
+            foreach ($pointage as $p) {
+
+                $sheet->setCellValue('A' . $i, $sn["street"]);
+                $sheet->setCellValue('B' . $i, $sn["name"]);
+
                 // dd($pointage);
-                $sheet->setCellValue('C'.$i, ($p["Dat"]));
-                $sheet->setCellValue('D'.$i, $p["min_pointage"]);
-                $sheet->setCellValue('E'.$i, $p["max_pointage"]);
+                $sheet->setCellValue('C' . $i, ($p["Dat"]));
+                $sheet->setCellValue('D' . $i, $p["min_pointage"]);
+                $sheet->setCellValue('E' . $i, $p["max_pointage"]);
 
                 $i++;
             }
-            
-            
         }
         $fileName = null;
         $writer = new Xlsx($spreadsheet);
@@ -693,7 +692,7 @@ class ImportationController extends AbstractController
         $temp_file = tempnam(sys_get_temp_dir(), $fileName);
         $writer->save($temp_file);
         return $this->file($temp_file, $fileName, ResponseHeaderBag::DISPOSITION_INLINE);
-        
+
         // return $this->render('residanat/index.html.twig', [
         //     'etablissements' => $this->em->getRepository(AcEtablissement::class)->findBy(['active' => 1]),
         //     'controller_name' => 'ResidanatController',
