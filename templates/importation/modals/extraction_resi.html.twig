@@ -1,0 +1,28 @@
+<div class="modal" role="dialog" id="modal-extraction" aria-modal="true">
+    <div class="modal-dialog modal-md modal-preins" role="document" style="max-width: 469px !important;">
+        <div class="modal-content" style="padding: 20px;">
+            <div class="modal-header">
+                <h5 class="modal-title">Extraction Résidanat</h5>
+                </hr>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-5" style="padding-right: 5px !important;padding-left: 5px !important;">
+                        <label for="date_debut">Date Debut:</label>
+                        <input type="date" class="form-control" name="date_debut" id="date_debut" value="{{ 'now' | date('Y-m-d')}}" />
+                    </div>
+                    <div class="col-md-5" style="padding-right: 5px !important;padding-left: 5px !important;">
+                        <label for="date_fin">Date Fin:</label>
+                        <input type="date" class="form-control" name="date_fin" id="date_fin" value="{{ 'now' | date('Y-m-d')}}" />
+                    </div>
+                    <div class="col-md-2" style="padding-top: 21px; padding-right: 5px !important;padding-left: 5px !important;">
+                        <a href="#" id="extraction_resi" class="btn btn-primary ml-1"><i class="fas fa-check"></i> Extraction</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
