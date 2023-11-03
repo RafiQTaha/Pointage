@@ -18,7 +18,7 @@ $(document).ready(function () {
       [10, 15, 25, 50, 100, "All"],
     ],
     order: [[2, "desc"]],
-    ajax: "/list",
+    ajax: "/pointage/list",
     processing: true,
     serverSide: true,
     deferRender: true,
@@ -130,7 +130,7 @@ $(document).ready(function () {
     }
             
     window.open(
-      "/extractionResidanat/"+date_debut+"/"+date_fin,
+      "/pointage/extractionResidanat/"+date_debut+"/"+date_fin,
       "_blank"
     );
 
@@ -140,7 +140,7 @@ $(document).ready(function () {
   
   const Importation = async (formData,icon) => {
     try {
-      const request = await axios.post('/importation',formData);
+      const request = await axios.post('/pointage/importation',formData);
       const response = request.data;
       console.log(response);
       table.ajax.reload();
@@ -166,7 +166,7 @@ $(document).ready(function () {
     let formData = new FormData();
     formData.append('date',"")
     try {
-        const request = await axios.post('/importation',formData);
+        const request = await axios.post('/pointage/importation',formData);
         let response = request.data
         console.log(date)
         ImportationSync()

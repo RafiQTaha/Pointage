@@ -7,7 +7,7 @@
     <div class="section-header">
       <h1>Pointages</h1>
       <div class="section-header-breadcrumb">
-      {% if app.user.id == 1 %}
+      {# {% if app.user.id == 1 %}
         <button type="button" class="btn btn-success ml-1" id="btnExtractionResi" data-toggle="modal" data-target="#modal-extraction">
           <i class="fas fa-file"></i> Extraction Residanat
         </button>
@@ -20,7 +20,7 @@
         <button type="button" class="btn btn-success ml-1" id="btnExtractionResi" data-toggle="modal" data-target="#modal-extraction">
           <i class="fas fa-file"></i> Extraction Residanat
         </button>
-      {% endif %}
+      {% endif %} #}
         {# <a href="#" id="z" class="btn btn-primary ml-1"><i class="fas fa-edit"></i> Z</a>
         <a href="#" id="s" class="btn btn-primary ml-1"><i class="fas fa-edit"></i> S</a>
         <a href="#" id="planing" class="btn btn-success ml-1"><i class="fas fa-calendar-alt"></i> Planing</a>
@@ -50,19 +50,18 @@
         <div class="card-body">
           <div class="card-search" style="margin-bottom: 1.5rem">
             <div class="row">
-              <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
+              {# <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
                 <label for="day">Jour D'Importation:</label>
                 <input type="date" class="form-control" name="day" id="day" value="{{ 'now' | date('Y-m-d')}}" />
               </div>
               <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
                 <label for="hdebut">Heur Debut:</label>
-                {# <input type="time" id="appt" name="appt" min="09:00" max="18:00" required /> #}
                 <input type="time" class="form-control" id="hdebut" name="hdebut"  />
               </div>
               <div class="col-md-2" style="padding-right: 5px !important;padding-left: 5px !important;">
                 <label for="hfin">Heur Fin:</label>
                 <input type="time" class="form-control" id="hfin" name="hfin"  />
-              </div>
+              </div> #}
               {# <div class="col-md-1" style="padding-right: 5px !important;padding-left: 5px !important;">
                 <label for="salles">Salles:</label>
                 <select class="form-control" name="salles" id="salles">
@@ -76,31 +75,7 @@
               </div> #}
             </div>
           </div>
-          <table id="datatables_gestion_pointages" class="table table-striped" style="width: 100%">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>IP</th>
-                <th>SN</th>
-                <th>D-Pointage</th>
-                <th>Badgenumber</th>
-                <th>Nom</th>
-                {# <th>Nbr Pointage</th> #}
-              </tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot>
-              <tr>
-                <th>#</th>
-                <th>IP</th>
-                <th>SN</th>
-                <th>D-Pointage</th>
-                <th>Badgenumber</th>
-                <th>Nom</th>
-                {# <th>Nbr Pointage</th> #}
-              </tr>
-            </tfoot>
-          </table>
+          Auto Import
         </div>
       </div>
     </div>
@@ -115,6 +90,6 @@
 {% block javascripts %}
 {{ parent() }}
 {# {{ encore_entry_script_tags("traitement") }} #}
-<script src="/assets/js/traitement/traitement.js"></script>
+<script src="/assets/js/traitement/import.js"></script>
 
 {% endblock %}
