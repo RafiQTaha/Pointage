@@ -247,69 +247,69 @@ class ImportationController extends AbstractController
     //     return new Response(json_encode($json_data));
     // }
 
-    #[Route('/importation', name: 'importation')]
-    public function importation(Request $request, AuthorizationCheckerInterface $authorizationChecker): Response
-    {
-        if (!$authorizationChecker->isGranted('ROLE_ADMIN')) {
-            return new Response('', 500);
-        }
-        $this->em->getRepository(SituationSync::class)->find(1)->setSync(1);
-        $this->em->flush();
-        $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
-        // dd($dateSeance);
-        $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
-        // dd($machines);
-        // $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[955,954]]);
-        $EndWithSucces = 0;
-        $EndWithError = 0;
-        $countPointage = 0;
-        foreach ($machines as $machine) {
-            // if ($machine->getSn() != "AIOR200360236") {
-            //     continue;
-            // }
-            $attendances = [];
-            $zk = new \ZKLibrary($machine->getIP(), 4370);
-            $zk->connect();
-            // dd($zk->connect());
-            // dd($zk->getAttendance($dateSeance));
-            try {
-                $attendances = $zk->getAttendance($dateSeance);
-                $EndWithSucces++;
-            } catch (\Throwable $th) {
-                //dump($machine);
-                $EndWithError++;
-                continue;
-            }
-            $zk->disconnect();
-            // dd($attendances);
-            if ($attendances) {
-                foreach ($attendances as $attendance) {
-                    $checkIIN = $this->em->getRepository(Checkinout::class)->findOneBy([
-                        'sn' => $machine->getSn(),
-                        'USERID' => $attendance['id'],
-                        'CHECKTIME' => new DateTime($attendance['timestamp']),
-                    ]);
-                    if (!$checkIIN) {
-                        $checkin = new Checkinout();
-                        $checkin->setUSERID($attendance['id']);
-                        $checkin->setCHECKTIME(new DateTime($attendance['timestamp']));
-                        $checkin->setMemoinfo('work');
-                        $checkin->setSN($machine->getSn());
-                        $checkin->setCreated(new DateTime('now'));
-                        $checkin->setMachine($machine);
-                        $this->em->persist($checkin);
-                        $this->em->flush();
-                        $countPointage++;
-                    }
-                }
-            }
-        }
-        $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
-        $this->em->flush();
-        return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
-        // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
-        dd('done');
-    }
+    // #[Route('/importation', name: 'importation')]
+    // public function importation(Request $request, AuthorizationCheckerInterface $authorizationChecker): Response
+    // {
+    //     if (!$authorizationChecker->isGranted('ROLE_ADMIN')) {
+    //         return new Response('', 500);
+    //     }
+    //     $this->em->getRepository(SituationSync::class)->find(1)->setSync(1);
+    //     $this->em->flush();
+    //     $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
+    //     // dd($dateSeance);
+    //     $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
+    //     // dd($machines);
+    //     // $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[955,954]]);
+    //     $EndWithSucces = 0;
+    //     $EndWithError = 0;
+    //     $countPointage = 0;
+    //     foreach ($machines as $machine) {
+    //         // if ($machine->getSn() != "AIOR200360236") {
+    //         //     continue;
+    //         // }
+    //         $attendances = [];
+    //         $zk = new \ZKLibrary($machine->getIP(), 4370);
+    //         $zk->connect();
+    //         // dd($zk->connect());
+    //         // dd($zk->getAttendance($dateSeance));
+    //         try {
+    //             $attendances = $zk->getAttendance($dateSeance);
+    //             $EndWithSucces++;
+    //         } catch (\Throwable $th) {
+    //             //dump($machine);
+    //             $EndWithError++;
+    //             continue;
+    //         }
+    //         $zk->disconnect();
+    //         // dd($attendances);
+    //         if ($attendances) {
+    //             foreach ($attendances as $attendance) {
+    //                 $checkIIN = $this->em->getRepository(Checkinout::class)->findOneBy([
+    //                     'sn' => $machine->getSn(),
+    //                     'USERID' => $attendance['id'],
+    //                     'CHECKTIME' => new DateTime($attendance['timestamp']),
+    //                 ]);
+    //                 if (!$checkIIN) {
+    //                     $checkin = new Checkinout();
+    //                     $checkin->setUSERID($attendance['id']);
+    //                     $checkin->setCHECKTIME(new DateTime($attendance['timestamp']));
+    //                     $checkin->setMemoinfo('work');
+    //                     $checkin->setSN($machine->getSn());
+    //                     $checkin->setCreated(new DateTime('now'));
+    //                     $checkin->setMachine($machine);
+    //                     $this->em->persist($checkin);
+    //                     $this->em->flush();
+    //                     $countPointage++;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
+    //     $this->em->flush();
+    //     return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
+    //     // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
+    //     dd('done');
+    // }
 
     static function ping($ip)
     {
