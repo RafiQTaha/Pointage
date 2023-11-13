@@ -24,6 +24,9 @@ class Machines
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $sn;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $type;
+
     #[ORM\OneToMany(mappedBy: 'machine', targetEntity: Checkinout::class)]
     private Collection $checkinouts;
 
@@ -72,6 +75,18 @@ class Machines
     public function setSn(?string $sn): self
     {
         $this->sn = $sn;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

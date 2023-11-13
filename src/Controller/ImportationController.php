@@ -24,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
-// require '../zklibrary.php';
+require '../zklibrary.php';
 
 #[Route('/pointage')]
 class ImportationController extends AbstractController
@@ -339,13 +339,31 @@ class ImportationController extends AbstractController
     public function importationTemp(Request $request): Response
     {
         // $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
-        $dateSeance = '2023-09-27';
-        $datedebut = "2023-10-02";
-        $datefin = "2023-10-27";
+        $dateSeance = '2023-11-09';
+        $datedebut = "2023-11-09";
+        $datefin = "2023-11-09";
         // dd($dateSeance);
         // $machines = $this->em->getRepository(Machines::class)->findall();
         // dd($machines);
-        $machines = $this->em->getRepository(Machines::class)->findBy(['id' => [953]]);
+        $ids = [1001,
+        1002,
+        1003,
+        1004,
+        1006,
+        1007,
+        1008,
+        1009,
+        1010,
+        1011,
+        1013,
+        1014,
+        1015,
+        1016,
+        1084,
+        1093,
+        1094];
+        $machines = $this->em->getRepository(Machines::class)->findBy(['id' => $ids]);
+        // dd($machines);
         // $machines = $this->em->getRepository(Machines::class)->findBy(['active'=>0]);
 
         // $ping =  self::ping($machines[0]->getIP());
@@ -377,17 +395,17 @@ class ImportationController extends AbstractController
             // dd($zk->getAttendance($dateSeance));
             try {
                 // dd("hi");
-                // $attendances = $zk->getAttendance($dateSeance);
-                $attendances = $zk->getAttendanceByDate($datedebut, $datefin);
+                $attendances = $zk->getAttendance($dateSeance);
+                // $attendances = $zk->getAttendanceByDate($datedebut, $datefin);
                 $EndWithSucces++;
             } catch (\Throwable $th) {
-                dump($th);
+                // dump($th);
                 array_push($machineError, $machine);
                 $EndWithError++;
                 continue;
             }
             $zk->disconnect();
-            // dd($attendances);
+            dd($attendances);
             if ($attendances) {
                 foreach ($attendances as $attendance) {
                     $checkIIN = $this->em->getRepository(Checkinout::class)->findOneBy([
@@ -413,7 +431,7 @@ class ImportationController extends AbstractController
         // die();
         // $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
         // $this->em->flush();
-        dd($machineError);
+        // dd($machineError);
         return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
         // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
         dd('done');
@@ -475,7 +493,6 @@ class ImportationController extends AbstractController
         'ADM-FMDA_ODF00008400',
         'ADM-FMDA_PRT00008399',
         'ADM-FMA_DRM00008494',
-        
         'ADM-FMA_ORL00003355',
         'ADM-FMA_OPH00003354',
         'ADM-FMA_CAR00004432',
