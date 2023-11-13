@@ -22,13 +22,13 @@ $(document).ready(function () {
       }
     
       
-      const ImportationSync = async () => {
+      const ImportationSyncCR = async () => {
         console.log('ImportationSync ');
         var date = new Date();
         let formData = new FormData();
         formData.append('date',"")
         try {
-            const request = await axios.post('/auto/import/importation',formData);
+            const request = await axios.post('/auto/import/importation/cr',formData);
             let response = request.data
             console.log(date)
             ImportationSync()
@@ -39,5 +39,23 @@ $(document).ready(function () {
             console.log(message)
         }
       }
-      ImportationSync()
+      const ImportationSyncSTG = async () => {
+        console.log('ImportationSync ');
+        var date = new Date();
+        let formData = new FormData();
+        formData.append('date',"")
+        try {
+            const request = await axios.post('/auto/import/importation/stg',formData);
+            let response = request.data
+            console.log(date)
+            ImportationSync()
+            console.log(response);
+        } catch (error) {
+            const message = error.response.data;
+            console.log('Error Importation ------')
+            console.log(message)
+        }
+      }
+      ImportationSyncCR()
+      ImportationSyncSTG()
 });

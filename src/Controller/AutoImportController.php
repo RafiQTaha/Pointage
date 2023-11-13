@@ -38,9 +38,10 @@ class AutoImportController extends AbstractController
         ]);
     }
 
-    #[Route('/auto/import/importation', name: 'importation')]
-    public function importation(Request $request, AuthorizationCheckerInterface $authorizationChecker): Response
+    #[Route('/auto/import/importation/{type}', name: 'importation')]
+    public function importation(Request $request, $type, AuthorizationCheckerInterface $authorizationChecker): Response
     {
+        // dd($type);
         // if (!$authorizationChecker->isGranted('ROLE_ADMIN')) {
         // return new Response('', 200);
         // }
@@ -48,8 +49,8 @@ class AutoImportController extends AbstractController
         $this->em->flush();
         $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
         // dd($dateSeance);
-        $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
-        // dd($machines);
+        $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1, 'type' => $type]);
+        dd($machines);
         // $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[955,954]]);
         $EndWithSucces = 0;
         $EndWithError = 0;
