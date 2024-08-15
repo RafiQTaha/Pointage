@@ -24,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
-require '../zklibrary.php';
+// require '../zklibrary.php';
 
 #[Route('/pointage')]
 class ImportationController extends AbstractController
@@ -247,22 +247,144 @@ class ImportationController extends AbstractController
     //     return new Response(json_encode($json_data));
     // }
 
-    // #[Route('/importation', name: 'importation')]
-    // public function importation(Request $request, AuthorizationCheckerInterface $authorizationChecker): Response
+    #[Route('/importation', name: 'importation')]
+    public function importation(Request $request, AuthorizationCheckerInterface $authorizationChecker): Response
+    {
+        // dd("hi");
+        // if (!$authorizationChecker->isGranted('ROLE_ADMIN')) {
+        //     return new Response('', 500);
+        // }
+        $this->em->getRepository(SituationSync::class)->find(1)->setSync(1);
+        $this->em->flush();
+        $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
+        // dd($dateSeance);
+        $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
+        // dd($machines);
+        // $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[955,954]]);
+        $EndWithSucces = 0;
+        $EndWithError = 0;
+        $countPointage = 0;
+        foreach ($machines as $machine) {
+            // if ($machine->getSn() != "AIOR200360236") {
+            //     continue;
+            // }
+            $attendances = [];
+            $zk = new \ZKLibrary($machine->getIP(), 4370);
+            $zk->connect();
+            // dd($zk->connect());
+            // dd($zk->getAttendance($dateSeance));
+            try {
+                $attendances = $zk->getAttendance($dateSeance);
+                $EndWithSucces++;
+            } catch (\Throwable $th) {
+                //dump($machine);
+                $EndWithError++;
+                continue;
+            }
+            $zk->disconnect();
+            // dd($attendances);
+            if ($attendances) {
+                foreach ($attendances as $attendance) {
+                    $checkIIN = $this->em->getRepository(Checkinout::class)->findOneBy([
+                        'sn' => $machine->getSn(),
+                        'USERID' => $attendance['id'],
+                        'CHECKTIME' => new DateTime($attendance['timestamp']),
+                    ]);
+                    if (!$checkIIN) {
+                        $checkin = new Checkinout();
+                        $checkin->setUSERID($attendance['id']);
+                        $checkin->setCHECKTIME(new DateTime($attendance['timestamp']));
+                        $checkin->setMemoinfo('work');
+                        $checkin->setSN($machine->getSn());
+                        $checkin->setCreated(new DateTime('now'));
+                        $checkin->setMachine($machine);
+                        $this->em->persist($checkin);
+                        $this->em->flush();
+                        $countPointage++;
+                    }
+                }
+            }
+        }
+        $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
+        $this->em->flush();
+        return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
+        // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
+        dd('done');
+    }
+
+    static function ping($ip)
+    {
+        $deviceIP = $ip;
+
+        $devicePort = 4370; // Replace with the appropriate port number
+        $timeout = 1; // Connection timeout in seconds
+
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+
+        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
+        socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, ['sec' => $timeout, 'usec' => 0]);
+
+        // Try to connect to the device
+        if (@socket_connect($socket, $deviceIP, $devicePort)) {
+            $status = 'yes';
+        } else {
+            $status = 'no';
+        }
+
+        socket_close($socket);
+        //  dd($status);
+        return $status;
+    }
+
+    // #[Route('/importationTemp', name: 'importationTemp')]
+    // public function importationTemp(Request $request): Response
     // {
-    //     if (!$authorizationChecker->isGranted('ROLE_ADMIN')) {
-    //         return new Response('', 500);
-    //     }
-    //     $this->em->getRepository(SituationSync::class)->find(1)->setSync(1);
-    //     $this->em->flush();
-    //     $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
+    //     // $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
+    //     $dateSeance = '2023-12-04';
+    //     $datedebut = "2023-09-15";
+    //     $datefin = "2023-12-06";
     //     // dd($dateSeance);
-    //     $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
+    //     // $machines = $this->em->getRepository(Machines::class)->findall();
     //     // dd($machines);
-    //     // $machines = $this->em->getRepository(Machines::class)->findBy(['id'=>[955,954]]);
+    //     $ids = [1017,
+    //     1018,
+    //     1019,
+    //     1020,
+    //     1021,
+    //     1023,
+    //     1047,
+    //     1048,
+    //     1065,
+    //     1066,
+    //     1067,
+    //     1068,
+    //     1069,
+    //     1070,
+    //     1071];
+    //     // $ids = [1037];
+    //     $machines = $this->em->getRepository(Machines::class)->findBy(['id' => $ids]);
+    //     // $machines = $this->em->getRepository(Machines::class)->findBy(['active' => 1]);
+    //     // dd($machines);
+    //     // $machines = $this->em->getRepository(Machines::class)->findBy(['active'=>0]);
+
+    //     // $ping =  self::ping($machines[0]->getIP());
+    //     // dd($ping);
+    //     // $cc=0;
+    //     // foreach ($machines as $machine) {
+    //     //     // dd($machine);
+    //     //     $checkinouts = $this->em->getRepository(Checkinout::class)->findBy(['ip'=>$machine->getSn()]);
+    //     //     foreach ($checkinouts as  $checkinout) {
+    //     //         $checkinout->setMachine($machine);
+    //     //         $cc++;
+    //     //     }
+
+    //     // }
+    //     // $this->em->flush();
+    //     // dd($cc);
     //     $EndWithSucces = 0;
     //     $EndWithError = 0;
     //     $countPointage = 0;
+    //     $machineError = [];
     //     foreach ($machines as $machine) {
     //         // if ($machine->getSn() != "AIOR200360236") {
     //         //     continue;
@@ -272,11 +394,16 @@ class ImportationController extends AbstractController
     //         $zk->connect();
     //         // dd($zk->connect());
     //         // dd($zk->getAttendance($dateSeance));
+    //         // $attendances = $zk->getAttendance($dateSeance);
     //         try {
-    //             $attendances = $zk->getAttendance($dateSeance);
+    //             // dd($datedebut,$datefin);
+    //             // $attendances = $zk->getAttendance($dateSeance);
+    //             $attendances = $zk->getAttendanceByDate($datedebut, $datefin);
+    //             // dd($attendances);
     //             $EndWithSucces++;
     //         } catch (\Throwable $th) {
-    //             //dump($machine);
+    //             // dump($th);
+    //             array_push($machineError, $machine);
     //             $EndWithError++;
     //             continue;
     //         }
@@ -304,138 +431,14 @@ class ImportationController extends AbstractController
     //             }
     //         }
     //     }
-    //     $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
-    //     $this->em->flush();
+    //     // die();
+    //     // $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
+    //     // $this->em->flush();
+    //     // dd($machineError);
     //     return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
     //     // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
     //     dd('done');
     // }
-
-    static function ping($ip)
-    {
-        $deviceIP = $ip;
-
-        $devicePort = 4370; // Replace with the appropriate port number
-        $timeout = 1; // Connection timeout in seconds
-
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-
-        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
-        socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, ['sec' => $timeout, 'usec' => 0]);
-
-        // Try to connect to the device
-        if (@socket_connect($socket, $deviceIP, $devicePort)) {
-            $status = 'yes';
-        } else {
-            $status = 'no';
-        }
-
-        socket_close($socket);
-        //  dd($status);
-        return $status;
-    }
-
-    #[Route('/importationTemp', name: 'importationTemp')]
-    public function importationTemp(Request $request): Response
-    {
-        // $dateSeance = $request->get('date') != "" ? $request->get('date') : date('Y-m-d');
-        $dateSeance = '2023-11-09';
-        $datedebut = "2023-11-09";
-        $datefin = "2023-11-09";
-        // dd($dateSeance);
-        // $machines = $this->em->getRepository(Machines::class)->findall();
-        // dd($machines);
-        $ids = [1001,
-        1002,
-        1003,
-        1004,
-        1006,
-        1007,
-        1008,
-        1009,
-        1010,
-        1011,
-        1013,
-        1014,
-        1015,
-        1016,
-        1084,
-        1093,
-        1094];
-        $machines = $this->em->getRepository(Machines::class)->findBy(['id' => $ids]);
-        // dd($machines);
-        // $machines = $this->em->getRepository(Machines::class)->findBy(['active'=>0]);
-
-        // $ping =  self::ping($machines[0]->getIP());
-        // dd($ping);
-        // $cc=0;
-        // foreach ($machines as $machine) {
-        //     // dd($machine);
-        //     $checkinouts = $this->em->getRepository(Checkinout::class)->findBy(['ip'=>$machine->getSn()]);
-        //     foreach ($checkinouts as  $checkinout) {
-        //         $checkinout->setMachine($machine);
-        //         $cc++;
-        //     }
-
-        // }
-        // $this->em->flush();
-        // dd($cc);
-        $EndWithSucces = 0;
-        $EndWithError = 0;
-        $countPointage = 0;
-        $machineError = [];
-        foreach ($machines as $machine) {
-            // if ($machine->getSn() != "AIOR200360236") {
-            //     continue;
-            // }
-            $attendances = [];
-            $zk = new \ZKLibrary($machine->getIP(), 4370);
-            $zk->connect();
-            // dd($zk->connect());
-            // dd($zk->getAttendance($dateSeance));
-            try {
-                // dd("hi");
-                $attendances = $zk->getAttendance($dateSeance);
-                // $attendances = $zk->getAttendanceByDate($datedebut, $datefin);
-                $EndWithSucces++;
-            } catch (\Throwable $th) {
-                // dump($th);
-                array_push($machineError, $machine);
-                $EndWithError++;
-                continue;
-            }
-            $zk->disconnect();
-            dd($attendances);
-            if ($attendances) {
-                foreach ($attendances as $attendance) {
-                    $checkIIN = $this->em->getRepository(Checkinout::class)->findOneBy([
-                        'sn' => $machine->getSn(),
-                        'USERID' => $attendance['id'],
-                        'CHECKTIME' => new DateTime($attendance['timestamp']),
-                    ]);
-                    if (!$checkIIN) {
-                        $checkin = new Checkinout();
-                        $checkin->setUSERID($attendance['id']);
-                        $checkin->setCHECKTIME(new DateTime($attendance['timestamp']));
-                        $checkin->setMemoinfo('work');
-                        $checkin->setSN($machine->getSn());
-                        $checkin->setCreated(new DateTime('now'));
-                        $checkin->setMachine($machine);
-                        $this->em->persist($checkin);
-                        $this->em->flush();
-                        $countPointage++;
-                    }
-                }
-            }
-        }
-        // die();
-        // $this->em->getRepository(SituationSync::class)->find(1)->setSync(0);
-        // $this->em->flush();
-        // dd($machineError);
-        return new Response('Pointage Importer: ' . $countPointage . ', Success Pointeuse: ' . $EndWithSucces . ', Error Pointeuse: ' . $EndWithError, 200);
-        // return new jsonResponse(['Pointage Importer: '.$countPointage.', Success Pointeuse: '.$EndWithSucces.', Error Pointeuse: '.$EndWithError,200]);
-        dd('done');
-    }
 
     #[Route('/extractionResidanat/{db}/{fin}', name: 'app_residanat_extraction')]
     public function extractionResidanat($db, $fin): Response
@@ -447,11 +450,10 @@ class ImportationController extends AbstractController
 
         $admission = "'ADM-FMA_ONC00008470',
         'ADM-FMA_RTH00008472',
-        'ADM-FMA_RTH00008493',
-        'ADM-FMA_PD00008398',
+        'ADM-FMA_CAR00008718',
+        'ADM-FMA_HEC00008464',
         'ADM-FMA_PD00008462',
         'ADM-FMA_HEC00008461',
-        'ADM-FMA_HEC00008464',
         'ADM-FMA_HEC00008474',
         'ADM-FMA_NRO00008467',
         'ADM-FMA_CV00008473',
@@ -480,7 +482,6 @@ class ImportationController extends AbstractController
         'ADM-FMA_ORL00008445',
         'ADM-FMA_OPH00008402',
         'ADM-FMA_OPH00008469',
-        'ADM-FMA_OPH00008487',
         'ADM-FMA_RAD00008429',
         'ADM-FMA_RAD00008459',
         'ADM-FMA_RAD00008476',
@@ -615,7 +616,6 @@ class ImportationController extends AbstractController
         'ADM-FMA_MG00002878',
         'ADM-FMA_FMA00001685',
         'ADM-FMA_MG00002841',
-        'ADM-FMA_MG00002891',
         'ADM-FMA_FMA00001690',
         'ADM-FMA_FMA00001629',
         'ADM-FMA_MG00002825',
@@ -626,12 +626,6 @@ class ImportationController extends AbstractController
         'ADM-FMA_MG00002922',
         'ADM-FMA_MG00002881',
         'ADM-FMA_MG00002853',
-        'ADM-FPA_FPA00001614',
-        'ADM-FPA_FPA00001684',
-        'ADM-FPA_FPA00001776',
-        'ADM-FPA_FPA00001770',
-        'ADM-FPA_FPA00001697',
-        'ADM-FPA_FPA00001800',
         'ADM-FPA_PH00002685',
         'ADM-FPA_PH00002683',
         'ADM-FPA_PH00002689',
@@ -642,7 +636,10 @@ class ImportationController extends AbstractController
         'ADM-FDA_FDA00002795',
         'ADM-FDA_FDA00002771',
         'ADM-FDA_FDA00002781',
-        'ADM-FDA_FDA00002777'";
+        'ADM-FDA_FDA00002777',
+        'ADM-FMA_END00008650',
+        'ADM-FMA_GS00008651',
+        'ADM-FMA_RUM00008649'";
         $myArray = "'x',";
 
         $requete = "SELECT DISTINCT userinfo.name,userinfo.street,userinfo.badgenumber
@@ -657,34 +654,38 @@ class ImportationController extends AbstractController
         $sheet->setCellValue('A1', 'ADMISSION');
         $sheet->setCellValue('B1', 'NOM');
         $sheet->setCellValue('C1', 'date');
-        $sheet->setCellValue('D1', 'HEUREDEPOINTAGEMINIMAL');
-        $sheet->setCellValue('E1', 'HEUREDEPOINTAGEMaximal');
+        $sheet->setCellValue('D1', 'pointage');
+        // $sheet->setCellValue('D1', 'HEUREDEPOINTAGEMINIMAL');
+        // $sheet->setCellValue('E1', 'HEUREDEPOINTAGEMaximal');
 
         $i = 2;
         $count = 1;
         foreach ($userinfo as $sn) {
+            // if($sn["badgenumber"] == "")dd($sn);
 
-            $requete = "SELECT
-                c1.Dat,
-                c1.checktime AS min_pointage,
-                c2.checktime AS max_pointage
-            FROM
-                (
-                    SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, MIN(TIME_FORMAT(checktime, '%H:%i:%s')) AS checktime
-                    FROM checkinout
-                    WHERE userid = " . $sn["badgenumber"] . "
-                    AND date(checktime) >= '$db' AND  date(checktime) <= '$fin'
-                    GROUP BY Dat
-                ) c1
-            LEFT JOIN
-                (
-                    SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, MAX(TIME_FORMAT(checktime, '%H:%i:%s')) AS checktime
-                    FROM checkinout
-                    WHERE userid = " . $sn["badgenumber"] . "
-                    AND date(checktime) >= '$db' AND  date(checktime) <= '$fin'
-                    GROUP BY Dat
-                ) c2
-            ON c1.Dat = c2.Dat;";
+            $requete = "SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, TIME_FORMAT(checktime, '%H:%i:%s') AS checktime FROM checkinout WHERE userid = " . $sn["badgenumber"] . " AND date(checktime) >= '$db' AND date(checktime) <= '$fin' ";
+                // dd($requete);
+            // $requete = "SELECT
+            //     c1.Dat,
+            //     c1.checktime AS min_pointage,
+            //     c2.checktime AS max_pointage
+            // FROM
+            //     (
+            //         SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, MIN(TIME_FORMAT(checktime, '%H:%i:%s')) AS checktime
+            //         FROM checkinout
+            //         WHERE userid = " . $sn["badgenumber"] . "
+            //         AND date(checktime) >= '$db' AND  date(checktime) <= '$fin'
+            //         GROUP BY Dat
+            //     ) c1
+            // LEFT JOIN
+            //     (
+            //         SELECT DATE_FORMAT(checktime, '%Y-%m-%d') AS Dat, MAX(TIME_FORMAT(checktime, '%H:%i:%s')) AS checktime
+            //         FROM checkinout
+            //         WHERE userid = " . $sn["badgenumber"] . "
+            //         AND date(checktime) >= '$db' AND  date(checktime) <= '$fin'
+            //         GROUP BY Dat
+            //     ) c2
+            // ON c1.Dat = c2.Dat;";
             // dd($requete);
             $stmt = $this->em->getConnection()->prepare($requete);
             $newstmt = $stmt->executeQuery();
@@ -697,8 +698,9 @@ class ImportationController extends AbstractController
 
                 // dd($pointage);
                 $sheet->setCellValue('C' . $i, ($p["Dat"]));
-                $sheet->setCellValue('D' . $i, $p["min_pointage"]);
-                $sheet->setCellValue('E' . $i, $p["max_pointage"]);
+                $sheet->setCellValue('D' . $i, ($p["checktime"]));
+                // $sheet->setCellValue('D' . $i, $p["min_pointage"]);
+                // $sheet->setCellValue('E' . $i, $p["max_pointage"]);
 
                 $i++;
             }
